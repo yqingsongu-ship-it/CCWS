@@ -1,0 +1,35 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.suo.user
+
+# Visual Studio
+.vs/
+*.slnDoc
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+*.log
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Local settings
+.claude/settings.local.json
+
+# Documents
+*.docx
