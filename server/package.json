@@ -1,0 +1,49 @@
+{
+  "name": "@synthetic-monitoring/server",
+  "version": "1.0.0",
+  "description": "Central server for synthetic monitoring system",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "db:seed": "tsx src/scripts/seed.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@synthetic-monitoring/shared": "*",
+    "express": "^4.21.2",
+    "cors": "^2.8.5",
+    "helmet": "^8.1.0",
+    "compression": "^1.8.0",
+    "winston": "^3.17.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "zod": "^3.24.4",
+    "socket.io": "^4.8.1",
+    "node-cron": "^3.0.3",
+    "ioredis": "^5.6.0",
+    "@prisma/client": "^6.5.0",
+    "dotenv": "^16.4.7",
+    "nodemailer": "^6.9.16"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/cors": "^2.8.17",
+    "@types/compression": "^1.7.5",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.15.3",
+    "@types/node-cron": "^3.0.11",
+    "@types/nodemailer": "^6.4.17",
+    "@types/supertest": "^6.0.2",
+    "typescript": "^5.8.3",
+    "tsx": "^4.19.4",
+    "vitest": "^3.1.2",
+    "prisma": "^6.5.0",
+    "supertest": "^7.0.0"
+  }
+}

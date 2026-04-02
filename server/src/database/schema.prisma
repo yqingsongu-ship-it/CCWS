@@ -1,0 +1,8 @@
+import type { Config } from '@prisma/client/runtime/library';
+
+const config: Config = {
+  acceptEngineLicense: true,
+  datasourceUrl: process.env.DATABASE_URL || 'postgresql://localhost:5432/dem_monitoring',
+};
+
+export default config;

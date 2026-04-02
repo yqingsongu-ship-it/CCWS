@@ -1,0 +1,5 @@
+{
+  "subject": "Install dependencies and verify build",
+  "description": "Run npm install to install all dependencies for the monorepo and verify that the project builds successfully.",
+  "activeForm": "Installing dependencies and verifying build"
+}

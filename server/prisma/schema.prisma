@@ -1,0 +1,438 @@
+// Prisma schema for DEM 业务体验监控系统 (Commercial Version)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// User & Permission Models
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  role          UserRole  @default(USER)
+  departmentId  String?
+  quota         Int       @default(10)  // 监控任务配额
+  enabled       Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  department    Department? @relation(fields: [departmentId], references: [id])
+  monitors      Monitor[]
+  alerts        Alert[]
+  apiTokens     ApiToken[]
+  auditLogs     AuditLog[]
+  integrations  Integration[]
+  screens       DashboardScreen[]
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+  VIEWER
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  parentId    String?
+  path        String   // 部门路径，如 /总部/技术部/前端组
+  createdAt   DateTime @default(now())
+
+  parent      Department? @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children    Department[] @relation("DepartmentHierarchy")
+  users       User[]
+}
+
+model ApiToken {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  token       String   @unique  // 哈希存储
+  prefix      String   // 显示前缀，如 "sk_live_..."
+  scopes      String   // 权限范围，JSON 格式存储
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, etc.
+  resource    String   // monitor, user, alert, etc.
+  resourceId  String?
+  details     Json?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([resource, resourceId])
+}
+
+model Integration {
+  id          String   @id @default(cuid())
+  userId      String
+  type        String   // WEBHOOK, DINGTALK, WECHAT, SLACK, etc.
+  name        String
+  config      Json
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model DashboardScreen {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String
+  layout          Json     // 布局配置
+  widgets         Json     // 组件配置
+  refreshInterval Int      @default(30)  // 刷新间隔（秒）
+  isPublic        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id])
+}
+
+// ============================================================================
+// Probe & Monitor Models
+// ============================================================================
+
+model Probe {
+  id            String      @id @default(cuid())
+  name          String
+  status        ProbeStatus @default(OFFLINE)
+  location      String?
+  ip            String?
+  lastHeartbeat DateTime?
+  lastSeenAt    DateTime?
+  capabilities  String      @default("[]")  // 支持的监控类型，JSON 格式存储
+  version       String?
+  tags          String      @default("[]")  // 探针标签，JSON 格式存储
+  region        String?     // 所属区域
+  apiKey        String?     @unique  // 探针认证密钥
+  customerId    String?     // 私有探针关联客户
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  tasks         MonitorTask[]
+  checkResults  CheckResult[]
+}
+
+enum ProbeStatus {
+  ONLINE
+  OFFLINE
+  BUSY
+  MAINTENANCE
+}
+
+model Monitor {
+  id              String        @id @default(cuid())
+  name            String
+  type            MonitorType
+  target          String
+  config          Json
+  interval        Int           @default(60)  // 秒
+  timeout         Int           @default(10000) // 毫秒
+  status          MonitorStatus @default(ACTIVE)
+  userId          String
+  regions         String        @default("[]")  // JSON 格式存储
+  tags            String        @default("[]")  // JSON 格式存储
+  notes           String?
+  slaTarget       Float         @default(99.9)  // SLA 目标 %
+  followRedirects Boolean       @default(true)
+  retryCount      Int           @default(3)
+  latestResultId  String?       @unique
+  latestResult    CheckResult?  @relation("LatestCheckResult", fields: [latestResultId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id])
+  tasks         MonitorTask[]
+  checkResults  CheckResult[]
+  alertRules    AlertRule[]
+  alerts        Alert[]       @relation("MonitorAlerts")
+  snapshots     MonitorSnapshot[]
+  incidents     Incident[]
+}
+
+enum MonitorType {
+  HTTP
+  HTTPS
+  API
+  PING
+  DNS
+  TRACEROUTE
+  TCP
+  UDP
+  FTP
+  PAGE_PERF
+}
+
+enum MonitorStatus {
+  ACTIVE
+  PAUSED
+  ERROR
+  DOWN
+}
+
+model MonitorTask {
+  id          String     @id @default(cuid())
+  monitorId   String
+  probeId     String
+  status      TaskStatus @default(PENDING)
+  scheduledAt DateTime
+  executedAt  DateTime?
+  result      Json?
+  error       String?
+  retryCount  Int        @default(0)
+
+  monitor     Monitor    @relation(fields: [monitorId], references: [id])
+  probe       Probe      @relation(fields: [probeId], references: [id])
+}
+
+enum TaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  TIMEOUT
+}
+
+// ============================================================================
+// Check Result Model (High-frequency write table)
+// ============================================================================
+
+model CheckResult {
+  id              String   @id @default(cuid())
+  taskId          String
+  monitorId       String
+  probeId         String
+  success         Boolean
+  responseTime    Int?
+  statusCode      Int?
+  errorMessage    String?
+  details         Json?
+
+  // Performance timing
+  dnsTime         Int?     // DNS 解析时间 ms
+  tcpTime         Int?     // TCP 连接时间 ms
+  tlsTime         Int?     // TLS 握手时间 ms
+  ttfbTime        Int?     // 首字节时间 ms
+  downloadTime    Int?     // 下载时间 ms
+  totalTime       Int?     // 总时间 ms
+
+  // Page performance
+  domContentLoaded Int?
+  domComplete     Int?
+  firstContentfulPaint Int?  // FCP
+  largestContentfulPaint Int?  // LCP
+  cumulativeLayoutShift Float? // CLS
+  firstInputDelay Int?        // FID
+
+  // Resources waterfall
+  resources       Json?
+
+  // SSL info
+  sslExpiryDate   DateTime?
+  sslIssuer       String?
+
+  // Snapshots
+  screenshotUrl   String?
+  harUrl          String?
+
+  createdAt       DateTime @default(now())
+  indexedAt       DateTime @default(now())
+
+  monitor         Monitor  @relation(fields: [monitorId], references: [id])
+  probe           Probe    @relation(fields: [probeId], references: [id])
+  latestMonitor   Monitor? @relation("LatestCheckResult")
+
+  @@index([monitorId, createdAt])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// Snapshot & Statistics Models
+// ============================================================================
+
+model MonitorSnapshot {
+  id              String   @id @default(cuid())
+  monitorId       String
+  period          String   // daily, weekly, monthly
+  periodStart     DateTime
+  periodEnd       DateTime
+
+  // Statistics
+  totalChecks     Int
+  successCount    Int
+  failureCount    Int
+  avgResponseTime Float
+  minResponseTime Int
+  maxResponseTime Int
+  uptimePercent   Float
+
+  // Detailed data
+  hourlyStats     Json?
+  probeStats      Json?
+
+  createdAt       DateTime @default(now())
+
+  monitor         Monitor  @relation(fields: [monitorId], references: [id])
+
+  @@index([monitorId, period, periodStart])
+}
+
+model QuotaUsage {
+  id            String   @id @default(cuid())
+  userId        String
+  period        String   // daily, monthly
+  periodStart   DateTime
+  periodEnd     DateTime
+
+  monitorCount  Int
+  checkCount    Int
+  alertCount    Int
+
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, period, periodStart])
+}
+
+// ============================================================================
+// Alert & Incident Models
+// ============================================================================
+
+model AlertRule {
+  id                 String   @id @default(cuid())
+  monitorId          String
+  name               String
+  condition          Json     // { type: 'DOWN', threshold: 3 }
+  channels           String   // EMAIL, SMS, VOICE, APP_PUSH, WEBHOOK, URL, etc. JSON 格式
+  recipients         String   // JSON 格式
+  enabled            Boolean  @default(true)
+  cooldown           Int      @default(300)  // 告警冷却时间（秒）
+  severity           AlertSeverity @default(WARNING)
+  compressionEnabled Boolean  @default(true)
+  compressionWindow  Int      @default(300)  // 压缩时间窗口
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  monitor            Monitor  @relation(fields: [monitorId], references: [id])
+  alerts             Alert[]
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+  FATAL
+}
+
+model Alert {
+  id             String        @id @default(cuid())
+  ruleId         String
+  monitorId      String
+  userId         String?
+  type           AlertType
+  message        String
+  severity       AlertSeverity @default(WARNING)
+  acknowledged   Boolean       @default(false)
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  resolved       Boolean       @default(false)
+  resolvedAt     DateTime?
+  fingerprint    String        // 用于告警去重
+  incidentId     String?
+  context        Json?
+  createdAt      DateTime      @default(now())
+
+  rule           AlertRule?    @relation(fields: [ruleId], references: [id])
+  monitor        Monitor       @relation("MonitorAlerts", fields: [monitorId], references: [id])
+  user           User?         @relation(fields: [userId], references: [id])
+  incident       Incident?     @relation(fields: [incidentId], references: [id])
+
+  @@index([monitorId, createdAt])
+  @@index([fingerprint, resolved])
+}
+
+enum AlertType {
+  DOWN
+  RESPONSE_TIME
+  SSL_EXPIRY
+  CHANGE
+  THRESHOLD
+  RECOVERY
+}
+
+model Incident {
+  id          String         @id @default(cuid())
+  monitorId   String
+  title       String
+  status      IncidentStatus @default(OPEN)
+  severity    AlertSeverity
+  startedAt   DateTime       @default(now())
+  endedAt     DateTime?
+  summary     String?
+
+  alerts      Alert[]
+  monitor     Monitor        @relation(fields: [monitorId], references: [id])
+
+  @@index([monitorId, status])
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  IDENTIFIED
+  MONITORING
+  RESOLVED
+}
+
+// ============================================================================
+// Notification Model
+// ============================================================================
+
+model Notification {
+  id          String              @id @default(cuid())
+  alertId     String?
+  channel     String              // EMAIL, SMS, WEBHOOK, etc.
+  recipient   String
+  subject     String?
+  content     String
+  status      NotificationStatus  @default(PENDING)
+  sentAt      DateTime?
+  error       String?
+  metadata    Json?
+  createdAt   DateTime            @default(now())
+
+  @@index([alertId])
+  @@index([status])
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+  RETRYING
+}
