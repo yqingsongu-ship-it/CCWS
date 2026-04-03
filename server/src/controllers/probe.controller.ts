@@ -153,9 +153,9 @@ export async function createProbe(req: Request, res: Response): Promise<void> {
       data: {
         name: data.name,
         region: data.region,
-        location: JSON.stringify(data.location),
-        capabilities: JSON.stringify(data.capabilities || []),
-        tags: JSON.stringify(data.tags || []),
+        location: data.location ? JSON.stringify(data.location) : null,
+        capabilities: '[]',
+        tags: data.tags ? JSON.stringify(data.tags) : '[]',
         apiKey: apiKeyHash,
         status: 'OFFLINE',
       },

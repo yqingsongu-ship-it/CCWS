@@ -162,7 +162,10 @@ const showCreateModal = () => {
 
 const showEditModal = (record: MonitorTask) => {
   editData.value = record;
-  modalVisible.value = true;
+  modalVisible.value = false;
+  setTimeout(() => {
+    modalVisible.value = true;
+  }, 10);
 };
 
 const handleModalSuccess = () => {

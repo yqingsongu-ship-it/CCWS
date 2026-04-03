@@ -119,7 +119,7 @@ const fetchData = async () => {
     if (filterForm.search) filters.search = filterForm.search;
     if (filterForm.status) filters.status = filterForm.status;
     const result = await monitorStore.fetchMonitors(pagination.current, pagination.pageSize, filters);
-    const pageMonitors = result.items.filter((item: MonitorTask) => item.type === 'PAGE');
+    const pageMonitors = result.items.filter((item: MonitorTask) => item.type === 'PAGE_PERF');
     pages.value = pageMonitors;
     pagination.total = result.total;
   } catch (error: any) {
@@ -135,12 +135,18 @@ const goToDetail = (id: string) => router.push(`/pages/${id}`);
 
 const showCreateModal = () => {
   editData.value = null;
-  modalVisible.value = true;
+  modalVisible.value = false;
+  setTimeout(() => {
+    modalVisible.value = true;
+  }, 10);
 };
 
 const showEditModal = (record: MonitorTask) => {
   editData.value = record;
-  modalVisible.value = true;
+  modalVisible.value = false;
+  setTimeout(() => {
+    modalVisible.value = true;
+  }, 10);
 };
 
 const handleModalSuccess = () => {
