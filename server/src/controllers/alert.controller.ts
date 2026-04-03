@@ -6,12 +6,13 @@ import { createAuditLog } from '../services/auth.service.js';
 import { ZodError } from 'zod';
 import { z } from 'zod';
 
-// Validation schemas
+// Validation schemas with case-insensitive handling
 const createAlertRuleSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   type: z.enum(['DOWN', 'RESPONSE_TIME', 'SSL_EXPIRY', 'CHANGE']),
   condition: z.record(z.unknown()),
-  notificationChannels: z.array(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK'])),
+  notificationChannels: z.array(z.string().transform((val) => val.toUpperCase()).pipe(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK']))).optional(),
+  channels: z.array(z.string().transform((val) => val.toUpperCase()).pipe(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK']))).optional(),
   recipients: z.array(z.string()).optional(),
   enabled: z.boolean().default(true),
 });
@@ -20,7 +21,8 @@ const updateAlertRuleSchema = z.object({
   name: z.string().optional(),
   type: z.enum(['DOWN', 'RESPONSE_TIME', 'SSL_EXPIRY', 'CHANGE']).optional(),
   condition: z.record(z.unknown()).optional(),
-  notificationChannels: z.array(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK'])).optional(),
+  notificationChannels: z.array(z.string().transform((val) => val.toUpperCase()).pipe(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK']))).optional(),
+  channels: z.array(z.string().transform((val) => val.toUpperCase()).pipe(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK']))).optional(),
   recipients: z.array(z.string()).optional(),
   enabled: z.boolean().optional(),
 });
@@ -260,15 +262,18 @@ export async function createGlobalAlertRule(req: Request, res: Response): Promis
       return;
     }
 
+    // Use channels or notificationChannels (for backward compatibility)
+    const channelsList = data.channels || data.notificationChannels || [];
+
     // Create rule for the first monitor (or create a system-wide rule)
     const rule = await prisma.alertRule.create({
       data: {
         monitorId: userMonitors[0].id,
         name: data.name,
         type: data.type,
-        condition: data.condition,
-        notificationChannels: data.notificationChannels,
-        recipients: data.recipients || [],
+        condition: data.condition as any,
+        channels: JSON.stringify(channelsList),
+        recipients: JSON.stringify(data.recipients || []),
         enabled: data.enabled,
       },
       include: {
@@ -361,14 +366,17 @@ export async function createAlertRule(req: Request, res: Response): Promise<void
       return;
     }
 
+    // Use channels or notificationChannels (for backward compatibility)
+    const channelsList = data.channels || data.notificationChannels || [];
+
     const rule = await prisma.alertRule.create({
       data: {
         monitorId,
         name: data.name,
         type: data.type,
-        condition: data.condition,
-        notificationChannels: data.notificationChannels,
-        recipients: data.recipients || [],
+        condition: data.condition as any,
+        channels: JSON.stringify(channelsList),
+        recipients: JSON.stringify(data.recipients || []),
         enabled: data.enabled,
       },
     });

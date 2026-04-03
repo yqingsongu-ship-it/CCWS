@@ -141,14 +141,19 @@ const fetchData = async () => {
 };
 
 const calculateUptime = (monitor: MonitorTask): number => 99.9;
-const getAvgResponseTime = (monitor: MonitorTask): number => 0;
+const getAvgResponseTime = (monitor: MonitorTask): number => {
+  if (monitor.latestResult?.responseTime) {
+    return monitor.latestResult.responseTime;
+  }
+  return monitor.avgResponseTime || 0;
+};
 const handleTableChange = (pag: any) => { pagination.current = pag.current; pagination.pageSize = pag.pageSize; fetchData(); };
 const resetFilter = () => { filterForm.search = ''; filterForm.status = ''; filterForm.method = ''; pagination.current = 1; fetchData(); };
 const goToDetail = (id: string) => router.push(`/apis/${id}`);
 
 const showCreateModal = () => {
   editData.value = null;
-  modalVisible.value = true;
+  modalVisible.value = false;
   // 确保组件重新渲染
   setTimeout(() => {
     modalVisible.value = true;

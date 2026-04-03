@@ -192,6 +192,9 @@ const calculateUptime = (monitor: MonitorTask): number => {
 
 const getAvgResponseTime = (monitor: MonitorTask): number => {
   // 从监控结果获取平均响应时间
+  if (monitor.latestResult?.responseTime) {
+    return monitor.latestResult.responseTime;
+  }
   return monitor.avgResponseTime || 0;
 };
 
@@ -211,7 +214,10 @@ const resetFilter = () => {
 
 const showCreateModal = () => {
   editData.value = null;
-  modalVisible.value = true;
+  modalVisible.value = false;
+  setTimeout(() => {
+    modalVisible.value = true;
+  }, 10);
 };
 
 const showEditModal = (record: MonitorTask) => {

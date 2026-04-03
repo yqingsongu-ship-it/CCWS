@@ -25,7 +25,7 @@ const createMonitorSchema = z.object({
     name: z.string(),
     type: z.enum(['DOWN', 'RESPONSE_TIME', 'SSL_EXPIRY', 'CHANGE']),
     condition: z.record(z.unknown()),
-    notificationChannels: z.array(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK'])),
+    notificationChannels: z.array(z.string().transform((val) => val.toUpperCase()).pipe(z.enum(['EMAIL', 'SMS', 'VOICE', 'APP_PUSH', 'WEBHOOK', 'URL', 'DINGTALK', 'WECHAT', 'SLACK']))),
     enabled: z.boolean().default(true),
   })).optional(),
 });
@@ -195,8 +195,9 @@ export async function createMonitor(req: Request, res: Response): Promise<void> 
               create: data.alertRules.map((rule) => ({
                 name: rule.name,
                 type: rule.type,
-                condition: rule.condition,
-                notificationChannels: rule.notificationChannels,
+                condition: rule.condition as any,
+                channels: JSON.stringify(rule.notificationChannels || []),
+                recipients: JSON.stringify([]),
                 enabled: rule.enabled,
               })),
             }
