@@ -187,7 +187,3 @@ onMounted(() => {
   padding: 24px;
 }
 </style>
-
-<script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue';
-import { message, Modal } from 'ant-design-vue';
