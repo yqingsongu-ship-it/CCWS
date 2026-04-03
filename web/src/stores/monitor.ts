@@ -37,6 +37,10 @@ export const useMonitorStore = defineStore('monitor', () => {
           ...m,
           config: parseJSONField(m.config),
           tags: parseJSONField(m.tags),
+          latestResult: m.latestResult ? {
+            ...m.latestResult,
+            responseTime: m.latestResult.responseTime || null,
+          } : null,
         }));
         stats.value.total = result.data.total;
         updateStats();
