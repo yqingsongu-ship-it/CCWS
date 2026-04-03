@@ -123,8 +123,23 @@ const generateMockReports = (): Report[] => {
 
 const handleTableChange = (pag: any) => { pagination.current = pag.current; pagination.pageSize = pag.pageSize; };
 const resetFilter = () => { filterForm.type = ''; filterForm.dateRange = []; fetchData(); };
-const viewReport = (record: Report) => { message.info('查看报表功能开发中...'); };
-const downloadReport = (record: Report) => { message.info('下载报表功能开发中...'); };
+
+const viewReport = (record: Report) => {
+  // 根据报表类型跳转到对应详情页
+  const routeMap: Record<string, string> = {
+    daily: '/reports/daily',
+    weekly: '/reports/weekly',
+    monthly: '/reports/monthly',
+  };
+  const route = routeMap[record.type];
+  if (route) {
+    router.push(route);
+  } else {
+    message.info('报表类型暂不支持');
+  }
+};
+
+const downloadReport = (record: Report) => { message.info('下载报表功能需要后端 API 支持'); };
 
 const getTypeColor = (type: string) => {
   const colors: Record<string, string> = { daily: 'blue', weekly: 'green', monthly: 'purple' };

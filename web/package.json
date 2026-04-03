@@ -13,25 +13,27 @@
   },
   "dependencies": {
     "@synthetic-monitoring/shared": "*",
-    "vue": "^3.5.13",
-    "pinia": "^3.0.2",
-    "vue-router": "^4.5.1",
-    "axios": "^1.8.4",
-    "socket.io-client": "^4.8.1",
-    "echarts": "^5.6.0",
-    "vue-echarts": "^7.0.3",
-    "dayjs": "^1.11.13",
     "ant-design-vue": "^4.2.6",
-    "chart.js": "^4.4.8"
+    "axios": "^1.8.4",
+    "chart.js": "^4.4.8",
+    "dayjs": "^1.11.13",
+    "echarts": "^5.6.0",
+    "pinia": "^3.0.2",
+    "socket.io-client": "^4.8.1",
+    "vue": "^3.5.13",
+    "vue-echarts": "^7.0.3",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.4",
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.15.3",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitest/ui": "^3.1.2",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^29.0.1",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
-    "vue-tsc": "^2.2.10",
     "vitest": "^3.1.2",
-    "@vue/test-utils": "^2.4.6",
-    "@vitest/ui": "^3.1.2"
+    "vue-tsc": "^2.2.10"
   }
 }

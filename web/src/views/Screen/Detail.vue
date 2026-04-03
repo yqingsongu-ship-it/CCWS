@@ -148,7 +148,8 @@ const formatTime = (time: Date) => {
 };
 
 const handleEdit = () => {
-  // TODO
+  // 编辑功能需要跳转到编辑页面或打开编辑弹窗
+  message.info('编辑功能请使用监控管理页面');
 };
 
 const toggleFullscreen = () => {
@@ -162,8 +163,8 @@ const toggleFullscreen = () => {
 };
 
 onMounted(() => {
-  // TODO: Initialize charts
-  // Auto refresh based on refreshInterval
+  // 初始化图表 - 需要实际数据支持
+  // 自动刷新基于 refreshInterval
 });
 </script>
 

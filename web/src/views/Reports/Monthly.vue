@@ -107,7 +107,7 @@ const columns = [
 ];
 
 const getUptimeColor = (uptime: number) => { if (uptime >= 99.9) return '#52c41a'; if (uptime >= 99) return '#faad14'; return '#ff4d4f'; };
-const exportReport = () => { message.info('导出 PDF 功能开发中...'); };
+const exportReport = () => { message.info('导出 PDF 功能需要后端报表服务支持'); };
 
 report.value = { totalMonitors: 25, activeMonitors: 23, totalChecks: 375000, uptimePercent: 99.95, monitors: Array.from({ length: 10 }, (_, i) => ({ id: `m-${i}`, name: `监控任务 ${i + 1}`, type: i % 2 === 0 ? 'HTTP' : 'API', totalChecks: Math.floor(Math.random() * 30000) + 7000, uptimePercent: 99 + Math.random(), avgResponseTime: Math.floor(Math.random() * 200) + 50, alertsCount: Math.floor(Math.random() * 100) })) };
 slaData.value = report.value.monitors.map(m => ({ name: m.name, sla: m.uptimePercent, downtime: Math.floor((1 - m.uptimePercent / 100) * 30 * 24 * 60), target: 99.9 }));

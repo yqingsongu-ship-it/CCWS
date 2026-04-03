@@ -253,15 +253,11 @@ const handleAcknowledge = async (alert: AlertEvent) => {
 
 const handleToggleRule = async (rule: AlertRule) => {
   try {
-    if (rule.enabled) {
-      // Disable
-    } else {
-      // Enable
-    }
-    // TODO: Implement toggle API
+    await alertStore.toggleAlertRule(rule.id);
     rule.enabled = !rule.enabled;
-  } catch (error) {
-    message.error('操作失败');
+    message.success('操作成功');
+  } catch (error: any) {
+    message.error(error.message || '操作失败');
   }
 };
 

@@ -4,9 +4,9 @@ test.describe("Monitors E2E", () => {
   test.beforeEach(async ({ page }) => {
     // Login before each test
     await page.goto("http://localhost:5173/auth/login");
-    await page.fill(input[name=email], "test@example.com");
-    await page.fill(input[name=password], "password123");
-    await page.click(button[type=submit]);
+    await page.fill('input[name=email]', "test@example.com");
+    await page.fill('input[name=password]', "password123");
+    await page.click('button[type=submit]');
     await page.waitForURL("**/dashboard");
   });
 
@@ -14,12 +14,12 @@ test.describe("Monitors E2E", () => {
     await page.goto("http://localhost:5173/monitors/create");
 
     // Fill monitor form
-    await page.fill(input[name=name], "E2E Test Monitor");
-    await page.fill(input[name=target], "https://example.com");
-    await page.selectOption(select[name=type], "HTTP");
+    await page.fill('input[name=name]', "E2E Test Monitor");
+    await page.fill('input[name=target]', "https://example.com");
+    await page.selectOption('select[name=type]', "HTTP");
 
     // Submit form
-    await page.click(button[type=submit]);
+    await page.click('button[type=submit]');
 
     // Wait for success message
     await expect(page.locator("text=创建成功")).toBeVisible();

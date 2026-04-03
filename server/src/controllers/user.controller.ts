@@ -355,3 +355,83 @@ export async function toggleUser(req: Request, res: Response): Promise<void> {
     res.status(500).json({ success: false, error: 'Failed to toggle user' });
   }
 }
+
+/**
+ * GET /api/departments
+ * Get all departments
+ */
+export async function getAllDepartments(req: Request, res: Response): Promise<void> {
+  try {
+    const departments = await prisma.department.findMany({
+      include: {
+        parent: true,
+        _count: {
+          select: { users: true },
+        },
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const response: ApiResponse = { success: true, data: departments };
+    res.json(response);
+  } catch (error) {
+    console.error('Get departments error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get departments' });
+  }
+}
+
+/**
+ * POST /api/departments
+ * Create or update department
+ */
+export async function saveDepartment(req: Request, res: Response): Promise<void> {
+  try {
+    const { id, name, parentId, path } = req.body;
+
+    if (!name) {
+      res.status(400).json({ success: false, error: 'Department name is required' });
+      return;
+    }
+
+    let department;
+
+    if (id) {
+      // Update existing
+      department = await prisma.department.update({
+        where: { id },
+        data: { name, parentId, path },
+      });
+    } else {
+      // Create new
+      department = await prisma.department.create({
+        data: { name, parentId, path: path || `/${name}` },
+      });
+    }
+
+    const response: ApiResponse = { success: true, data: department };
+    res.json(response);
+  } catch (error) {
+    console.error('Save department error:', error);
+    res.status(500).json({ success: false, error: 'Failed to save department' });
+  }
+}
+
+/**
+ * DELETE /api/departments/:id
+ * Delete department
+ */
+export async function deleteDepartment(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+
+    await prisma.department.delete({
+      where: { id },
+    });
+
+    const response: ApiResponse = { success: true };
+    res.json(response);
+  } catch (error) {
+    console.error('Delete department error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete department' });
+  }
+}

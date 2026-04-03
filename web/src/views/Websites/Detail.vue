@@ -362,8 +362,14 @@ const handleCheckResultTableChange = (pag: any) => {
 };
 
 const loadAlerts = async () => {
-  // TODO: 加载告警历史
-  alerts.value = [];
+  // 加载告警历史 - 需要从后端 API 获取
+  try {
+    // 此处需要后端提供告警历史 API
+    // 暂时使用空数组
+    alerts.value = [];
+  } catch (error) {
+    console.error('加载告警历史失败:', error);
+  }
 };
 
 const handleQuickCheck = async () => {

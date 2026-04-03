@@ -260,8 +260,8 @@ const handleDelete = (probe: Probe) => {
 };
 
 const handleViewLogs = (probe: Probe) => {
-  // TODO: Implement logs viewer
-  message.info(`查看 ${probe.name} 的日志（待实现）`);
+  // 日志查看器功能需要后端日志 API 支持，暂提示
+  message.info(`查看 ${probe.name} 的日志功能需要后端日志 API 支持`);
 };
 
 const formatTimeLocal = (date?: Date) => {

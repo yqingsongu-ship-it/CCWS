@@ -64,27 +64,34 @@
 import { ref, reactive, computed } from 'vue';
 import { message, Modal } from 'ant-design-vue';
 
-const departments = ref([
-  { id: '1', name: '总部', parentId: null, level: 0, userCount: 5 },
-  { id: '2', name: '技术部', parentId: '1', level: 1, userCount: 3 },
-  { id: '3', name: '产品部', parentId: '1', level: 1, userCount: 2 },
-  { id: '4', name: '运营部', parentId: '1', level: 1, userCount: 0 },
-  { id: '5', name: '前端组', parentId: '2', level: 2, userCount: 1 },
-  { id: '6', name: '后端组', parentId: '2', level: 2, userCount: 2 },
-]);
+const departments = ref<any[]>([]);
 
 const columns = [
-  { title: '部门名称', key: 'name', width: 300 },
-  { title: '用户数', key: 'userCount', width: 100 },
+  { title: '部门名称', key: 'name', dataIndex: 'name', width: 300 },
+  { title: '用户数', key: 'userCount', dataIndex: ['_count', 'users'], width: 100 },
   { title: '操作', key: 'action', width: 150 },
 ];
 
+const fetchDepartments = async () => {
+  try {
+    const response = await fetch('/api/users/departments', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    const result = await response.json();
+    if (result.success) {
+      departments.value = result.data;
+    }
+  } catch (error: any) {
+    console.error('Failed to fetch departments:', error);
+  }
+};
+
 const departmentTree = computed(() => {
-  return departments.value.filter(d => !d.parentId).map(root => ({
+  return departments.value.filter((d: any) => !d.parentId).map((root: any) => ({
     ...root,
     title: root.name,
     value: root.id,
-    children: departments.value.filter(d => d.parentId === root.id).map(child => ({
+    children: departments.value.filter((d: any) => d.parentId === root.id).map((child: any) => ({
       ...child,
       title: child.name,
       value: child.id,
@@ -94,22 +101,25 @@ const departmentTree = computed(() => {
 
 const modalVisible = ref(false);
 const editingId = ref<string | null>(null);
-const form = reactive({
+const modalForm = reactive({
   name: '',
   parentId: '',
+  path: '',
 });
 
 const showCreateModal = () => {
   modalVisible.value = true;
   editingId.value = null;
-  form.name = '';
-  form.parentId = '';
+  modalForm.name = '';
+  modalForm.parentId = '';
+  modalForm.path = '';
 };
 
 const handleEdit = (record: any) => {
   editingId.value = record.id;
-  form.name = record.name;
-  form.parentId = record.parentId;
+  modalForm.name = record.name;
+  modalForm.parentId = record.parentId;
+  modalForm.path = record.path;
   modalVisible.value = true;
 };
 
@@ -120,17 +130,56 @@ const handleDelete = (record: any) => {
     okText: '确认',
     cancelText: '取消',
     okType: 'danger',
-    onOk: () => {
-      message.success('删除成功');
+    onOk: async () => {
+      try {
+        const response = await fetch(`/api/users/departments/${record.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
+        });
+        const result = await response.json();
+        if (result.success) {
+          departments.value = departments.value.filter(d => d.id !== record.id);
+          message.success('删除成功');
+        }
+      } catch (error: any) {
+        message.error('删除失败：' + (error.message || '未知错误'));
+      }
     },
   });
 };
 
-const handleModalOk = () => {
-  // TODO: Create or update department
-  modalVisible.value = false;
-  message.success(editingId.value ? '更新成功' : '创建成功');
+const handleModalOk = async () => {
+  try {
+    const payload = {
+      id: editingId.value || undefined,
+      name: modalForm.name,
+      parentId: modalForm.parentId || undefined,
+      path: modalForm.path || undefined,
+    };
+
+    const response = await fetch('/api/users/departments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      modalVisible.value = false;
+      message.success(editingId.value ? '更新成功' : '创建成功');
+      fetchDepartments();
+    }
+  } catch (error: any) {
+    message.error('操作失败：' + (error.message || '未知错误'));
+  }
 };
+
+onMounted(() => {
+  fetchDepartments();
+});
 </script>
 
 <style scoped>
@@ -138,3 +187,7 @@ const handleModalOk = () => {
   padding: 24px;
 }
 </style>
+
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted } from 'vue';
+import { message, Modal } from 'ant-design-vue';

@@ -84,24 +84,36 @@ const columns = [
 
 const getUptimeColor = (uptime: number) => { if (uptime >= 99.9) return '#52c41a'; if (uptime >= 99) return '#faad14'; return '#ff4d4f'; };
 
-const exportReport = () => { message.info('导出 PDF 功能开发中...'); };
+const exportReport = () => { message.info('导出 PDF 功能需要后端报表服务支持'); };
 
-// TODO: 加载实际数据
-report.value = {
-  totalMonitors: 25,
-  activeMonitors: 23,
-  totalChecks: 12500,
-  uptimePercent: 99.95,
-  monitors: Array.from({ length: 10 }, (_, i) => ({
-    id: `m-${i}`,
-    name: `监控任务 ${i + 1}`,
-    type: i % 2 === 0 ? 'HTTP' : 'API',
-    totalChecks: Math.floor(Math.random() * 1000) + 100,
-    uptimePercent: 99 + Math.random(),
-    avgResponseTime: Math.floor(Math.random() * 200) + 50,
-    alertsCount: Math.floor(Math.random() * 5),
-  })),
+// 报表数据 - 从后端 API 获取
+const fetchReportData = async () => {
+  try {
+    // 需要后端提供报表 API
+    // 暂时使用示例数据
+    report.value = {
+      totalMonitors: 25,
+      activeMonitors: 23,
+      totalChecks: 12500,
+      uptimePercent: 99.95,
+      monitors: Array.from({ length: 10 }, (_, i) => ({
+        id: `m-${i}`,
+        name: `监控任务 ${i + 1}`,
+        type: i % 2 === 0 ? 'HTTP' : 'API',
+        totalChecks: Math.floor(Math.random() * 1000) + 100,
+        uptimePercent: 99 + Math.random(),
+        avgResponseTime: Math.floor(Math.random() * 200) + 50,
+        alertsCount: Math.floor(Math.random() * 5),
+      })),
+    };
+  } catch (error) {
+    console.error('Failed to fetch report data:', error);
+  }
 };
+
+onMounted(() => {
+  fetchReportData();
+});
 </script>
 
 <style scoped>

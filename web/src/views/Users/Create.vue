@@ -123,11 +123,39 @@ const rules: Record<string, Rule[]> = {
 const handleSubmit = async () => {
   try {
     await formRef.value.validate();
-    // TODO: Call API to create user
-    message.success('创建成功');
-    router.push('/users');
-  } catch (error) {
-    message.error('请检查表单填写');
+
+    const payload = {
+      name: form.name,
+      email: form.email,
+      password: form.password,
+      role: form.role,
+      departmentId: form.departmentId || undefined,
+      quota: form.quota || 10,
+    };
+
+    const response = await fetch('/api/users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      message.success('创建成功');
+      router.push('/users');
+    } else {
+      message.error(result.error || '创建失败');
+    }
+  } catch (error: any) {
+    if (error.message && !error.message.includes('validation')) {
+      message.error(error.message || '创建失败');
+    } else {
+      message.error('请检查表单填写');
+    }
   }
 };
 </script>

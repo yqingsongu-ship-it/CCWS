@@ -70,8 +70,10 @@ import { useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons-vue';
 import type { Rule } from 'ant-design-vue/es/form';
+import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
+const authStore = useAuthStore();
 const formRef = ref();
 const loading = ref(false);
 
@@ -107,12 +109,20 @@ const rules: Record<string, Rule[]> = {
 const handleRegister = async () => {
   loading.value = true;
   try {
-    // TODO: Call register API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    message.success('注册成功，请登录');
-    router.push('/auth/login');
-  } catch (error) {
-    message.error('注册失败');
+    const result = await authStore.register({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+    });
+
+    if (result) {
+      message.success('注册成功，请登录');
+      router.push('/auth/login');
+    } else {
+      message.error(authStore.error || '注册失败');
+    }
+  } catch (error: any) {
+    message.error(error.message || '注册失败');
   } finally {
     loading.value = false;
   }

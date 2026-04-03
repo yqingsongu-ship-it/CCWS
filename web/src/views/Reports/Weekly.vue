@@ -91,7 +91,7 @@ const columns = [
 ];
 
 const getUptimeColor = (uptime: number) => { if (uptime >= 99.9) return '#52c41a'; if (uptime >= 99) return '#faad14'; return '#ff4d4f'; };
-const exportReport = () => { message.info('导出 PDF 功能开发中...'); };
+const exportReport = () => { message.info('导出 PDF 功能需要后端报表服务支持'); };
 
 const loadTrendChart = () => {
   if (!trendChart.value) return;

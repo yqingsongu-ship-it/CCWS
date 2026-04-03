@@ -29,5 +29,6 @@ export default defineConfig({
     deps: {
       inline: ['vitest-canvas'],
     },
+    exclude: ['**/e2e/**'],
   },
 });

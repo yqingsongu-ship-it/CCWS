@@ -168,6 +168,28 @@ export const useAlertStore = defineStore('alert', () => {
     }
   }
 
+  // 切换告警规则状态
+  async function toggleAlertRule(id: string) {
+    try {
+      const response = await fetch(`${API_BASE}/alerts/rules/${id}/toggle`, {
+        method: 'PATCH',
+        headers: getAuthHeader.value,
+      });
+      const result = await response.json();
+      if (result.success) {
+        const index = alertRules.value.findIndex(r => r.id === id);
+        if (index !== -1) {
+          alertRules.value[index].enabled = !alertRules.value[index].enabled;
+        }
+        return result.data;
+      }
+      throw new Error(result.error || '操作失败');
+    } catch (error) {
+      console.error('Failed to toggle alert rule:', error);
+      throw error;
+    }
+  }
+
   // 更新统计数据
   function updateStats() {
     stats.value.total = alerts.value.length;
@@ -186,5 +208,6 @@ export const useAlertStore = defineStore('alert', () => {
     acknowledgeAlert,
     createAlertRule,
     deleteAlertRule,
+    toggleAlertRule,
   };
 });

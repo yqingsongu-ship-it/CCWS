@@ -95,9 +95,8 @@ const handleSendCode = async () => {
   }
   sendingCode.value = true;
   try {
-    // TODO: Send verification code
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    message.success('验证码已发送');
+    // 验证码发送功能需要后端邮件服务支持
+    message.warning('验证码功能需要后端配置邮件服务');
     countdown.value = 60;
     const timer = setInterval(() => {
       countdown.value--;
@@ -115,10 +114,8 @@ const handleSendCode = async () => {
 const handleSubmit = async () => {
   loading.value = true;
   try {
-    // TODO: Call reset password API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    message.success('密码重置成功');
-    router.push('/auth/login');
+    // 密码重置功能需要后端 API 支持
+    message.warning('密码重置功能需要后端 API 支持');
   } catch (error) {
     message.error('重置失败');
   } finally {

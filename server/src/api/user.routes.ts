@@ -6,6 +6,9 @@ import {
   updateUser,
   deleteUser,
   toggleUser,
+  getAllDepartments,
+  saveDepartment,
+  deleteDepartment,
 } from '../controllers/user.controller.js';
 import { authenticate, requireAdmin } from '../middleware/auth.middleware.js';
 
@@ -19,3 +22,8 @@ userRoutes.post('/', createUser);
 userRoutes.put('/:id', updateUser);
 userRoutes.delete('/:id', deleteUser);
 userRoutes.post('/:id/toggle', toggleUser);
+
+// Department routes
+userRoutes.get('/departments', getAllDepartments);
+userRoutes.post('/departments', saveDepartment);
+userRoutes.delete('/departments/:id', deleteDepartment);

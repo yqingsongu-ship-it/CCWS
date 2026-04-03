@@ -125,10 +125,6 @@ export async function getMonitorById(req: Request, res: Response): Promise<void>
         },
         alertRules: true,
         latestResult: true,
-        results: {
-          orderBy: { createdAt: 'desc' },
-          take: 100,
-        },
       },
     });
 

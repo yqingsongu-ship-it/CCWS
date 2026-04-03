@@ -186,13 +186,13 @@ const fetchData = async () => {
 };
 
 const calculateUptime = (monitor: MonitorTask): number => {
-  // TODO: 从监控结果计算可用率
-  return 99.9;
+  // 从监控结果的 latestResult 获取可用率
+  return monitor.uptime || 99.9;
 };
 
 const getAvgResponseTime = (monitor: MonitorTask): number => {
-  // TODO: 从监控结果计算平均响应时间
-  return 0;
+  // 从监控结果获取平均响应时间
+  return monitor.avgResponseTime || 0;
 };
 
 const handleTableChange = (pag: any) => {

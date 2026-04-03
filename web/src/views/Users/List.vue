@@ -92,8 +92,21 @@ const columns = [
 const fetchData = async () => {
   loading.value = true;
   try {
-    // TODO: 调用 API 获取用户列表
-    users.value = generateMockUsers();
+    const params: Record<string, string> = {
+      page: pagination.current.toString(),
+      pageSize: pagination.pageSize.toString(),
+    };
+    if (filterForm.search) params.search = filterForm.search;
+    if (filterForm.role) params.role = filterForm.role;
+
+    const response = await fetch(`/api/users?${new URLSearchParams(params)}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    const result = await response.json();
+    if (result.success) {
+      users.value = result.data.items;
+      pagination.total = result.data.total;
+    }
   } catch (error: any) {
     message.error('加载失败：' + (error.message || '未知错误'));
   } finally {
@@ -101,22 +114,32 @@ const fetchData = async () => {
   }
 };
 
-const generateMockUsers = (): User[] => {
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: `u-${i}`,
-    name: `用户${i + 1}`,
-    email: `user${i + 1}@example.com`,
-    role: i % 3 === 0 ? 'ADMIN' : i % 3 === 1 ? 'USER' : 'VIEWER',
-    status: i < 8 ? 'active' : 'inactive',
-    createdAt: new Date(Date.now() - i * 86400000).toISOString(),
-  }));
+const handleTableChange = (pag: any) => { pagination.current = pag.current; pagination.pageSize = pag.pageSize; fetchData(); };
+const resetFilter = () => { filterForm.search = ''; filterForm.role = ''; filterForm.status = ''; pagination.current = 1; fetchData(); };
+
+const showCreateModal = () => {
+  router.push('/users/create');
 };
 
-const handleTableChange = (pag: any) => { pagination.current = pag.current; pagination.pageSize = pag.pageSize; };
-const resetFilter = () => { filterForm.search = ''; filterForm.role = ''; filterForm.status = ''; fetchData(); };
-const showCreateModal = () => { message.info('创建用户功能开发中...'); };
-const editUser = (record: User) => { message.info('编辑用户功能开发中...'); };
-const toggleUserStatus = (record: User) => { message.success('操作成功'); fetchData(); };
+const editUser = (record: User) => {
+  router.push(`/users/${record.id}`);
+};
+
+const toggleUserStatus = async (record: User) => {
+  try {
+    const response = await fetch(`/api/users/${record.id}/toggle`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('accessToken')}` },
+    });
+    const result = await response.json();
+    if (result.success) {
+      record.enabled = !record.enabled;
+      message.success('操作成功');
+    }
+  } catch (error: any) {
+    message.error('操作失败：' + (error.message || '未知错误'));
+  }
+};
 
 const getRoleColor = (role: string) => { const colors: Record<string, string> = { ADMIN: 'red', USER: 'blue', VIEWER: 'green' }; return colors[role] || 'default'; };
 const getRoleLabel = (role: string) => { const labels: Record<string, string> = { ADMIN: '管理员', USER: '普通用户', VIEWER: '观察者' }; return labels[role] || role; };
