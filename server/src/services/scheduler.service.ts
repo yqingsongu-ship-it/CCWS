@@ -357,12 +357,7 @@ export class SchedulerService {
       await Promise.all(emitPromises);
       logger.debug(`Task ${monitorId} distributed to ${probes.length} probes`);
 
-      // Update last check time
-      await prisma.monitor.update({
-        where: { id: monitorId },
-        data: { lastCheckAt: new Date() },
-      });
-
+      // Task completed - will be updated when result comes back
       this.completeTask(monitorId);
     } catch (error) {
       logger.error(`Failed to execute monitor ${monitorId}:`, error);
